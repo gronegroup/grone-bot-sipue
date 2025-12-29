@@ -79,7 +79,8 @@ def send_push_notification(title, message):
             'title': title,
             'body': message
         }
-
+        try:
+            requests.post('https://exp.host/--/api/v2/push/send', json=payload)
         except Exception as e:
             print(f"Error enviando push: {e}")
 
