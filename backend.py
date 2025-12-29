@@ -1,4 +1,4 @@
-# backend.py
+# backend.py  # Forzar redeploy Railway 29/12/2025
 # Backend Flask para bot trader Binance REAL
 # Configura tus claves API aquí
 
@@ -13,70 +13,52 @@ from binance.client import Client
 import threading
 import time
 import pandas as pd
-import smtplib
-from email.mime.text import MIMEText
+
 import requests
 # Cargar variables de entorno
 from dotenv import load_dotenv
 load_dotenv()
 
+
 API_KEY = os.getenv("BINANCE_API_KEY")
 API_SECRET = os.getenv("BINANCE_API_SECRET")
 client = Client(API_KEY, API_SECRET)
 
-app = Flask(__name__)
-CORS(app)
+# Variables globales necesarias para el bot
+bot_status = {'running': False, 'last_action': '', 'last_price': 0}
+operation_history = []
+symbol = 'BTCUSDT'  # Puedes cambiarlo por el par que desees
 
-    df = pd.DataFrame(klines, columns=[
-        'timestamp', 'open', 'high', 'low', 'close', 'volume', 'close_time',
-
-        'quote_asset_volume', 'number_of_trades', 'taker_buy_base',
-        'taker_buy_quote', 'ignore'])
-    df['close'] = df['close'].astype(float)
-
-    df['high'] = df['high'].astype(float)
-    df['low'] = df['low'].astype(float)
-    return df
-
+# Estrategia mínima de ejemplo
 def trading_strategy():
-    df = get_historical_data()
-    avg_price = df['close'].mean()
-    last_price = df['close'].iloc[-1]
-    max_price = df['high'].max()
-    min_price = df['low'].min()
-    # Estrategia: compra si el precio está cerca del mínimo de 60 días, vende si está cerca del máximo
-    if last_price <= min_price * 1.05:
-        return 'buy', last_price
-    elif last_price >= max_price * 0.95:
-        return 'sell', last_price
-    elif last_price < avg_price:
-        return 'buy', last_price
-    elif last_price > avg_price:
-        return 'sell', last_price
-    else:
-        return 'hold', last_price
-
-
-# Configuración de email desde variables de entorno
-NOTIFY_EMAIL = os.getenv("EMAIL_USER")
-SMTP_SERVER = os.getenv("EMAIL_SERVER", "smtp.gmail.com")
-SMTP_PORT = int(os.getenv("EMAIL_PORT", 587))
-SMTP_USER = os.getenv("EMAIL_USER")
-SMTP_PASS = os.getenv("EMAIL_PASSWORD")
-
-def send_notification(subject, message):
+    # Aquí deberías poner tu lógica real
+    # Por ahora, solo retorna 'hold' y el último precio
+    last_price = 0
     try:
-        msg = MIMEText(message)
-        msg['Subject'] = subject
-        msg['From'] = SMTP_USER
-        msg['To'] = NOTIFY_EMAIL
-        server = smtplib.SMTP(SMTP_SERVER, SMTP_PORT)
-        server.starttls()
-        server.login(SMTP_USER, SMTP_PASS)
-        server.sendmail(SMTP_USER, [NOTIFY_EMAIL], msg.as_string())
-        server.quit()
+        df = get_historical_data(symbol, '1h', '2 days ago UTC')
+        if not df.empty:
+            last_price = df['close'].iloc[-1]
     except Exception as e:
-        print(f"Error enviando notificación: {e}")
+        print(f"Error en trading_strategy: {e}")
+    return 'hold', last_price
+
+
+
+def get_historical_data(symbol, interval, lookback):
+    try:
+        klines = client.get_historical_klines(symbol, interval, lookback)
+        df = pd.DataFrame(klines, columns=[
+            'timestamp', 'open', 'high', 'low', 'close', 'volume', 'close_time',
+            'quote_asset_volume', 'number_of_trades', 'taker_buy_base',
+            'taker_buy_quote', 'ignore'])
+        df['timestamp'] = pd.to_datetime(df['timestamp'], unit='ms')
+        df['close'] = df['close'].astype(float)
+        return df[['timestamp', 'close']]
+    except Exception as e:
+        print(f"Error obteniendo datos históricos: {e}")
+        return pd.DataFrame()
+
+
 
 push_tokens = set()
 
@@ -96,10 +78,7 @@ def send_push_notification(title, message):
             'sound': 'default',
             'title': title,
             'body': message
-        }
-        try:
-            requests.post('https://exp.host/--/api/v2/push/send', json=payload)
-        except Exception as e:
+
             print(f"Error enviando push: {e}")
 
 def trading_loop():
