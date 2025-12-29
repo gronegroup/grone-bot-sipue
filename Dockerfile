@@ -1,3 +1,4 @@
+## Forzar rebuild Railway 29/12/2025 - No copiar .env.example
 # Utiliza una imagen oficial de Python como base
 FROM python:3.11-slim
 
