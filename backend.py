@@ -80,6 +80,7 @@ def send_push_notification(title, message):
             'body': message
         }
 
+        except Exception as e:
             print(f"Error enviando push: {e}")
 
 def trading_loop():
