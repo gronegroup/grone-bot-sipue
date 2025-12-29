@@ -2,6 +2,8 @@
 
 Este proyecto es un bot de trading automático para Binance, con backend en Python (Flask) y frontend móvil en React Native (Expo).
 
+<!-- Forzar rebuild Railway 29/12/2025 -->
+
 ## Características
 - Compra barato y vende caro usando análisis de los últimos 60 días.
 - Notificaciones push y por email cuando se realiza una operación.
