@@ -78,6 +78,7 @@ def send_push_notification(title, message):
             'sound': 'default',
             'title': title,
             'body': message
+        }
 
             print(f"Error enviando push: {e}")
 
