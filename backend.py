@@ -16,8 +16,6 @@ import pandas as pd
 
 import requests
 # Cargar variables de entorno
-from dotenv import load_dotenv
-load_dotenv()
 
 
 API_KEY = os.getenv("BINANCE_API_KEY")
