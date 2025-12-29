@@ -2,6 +2,11 @@
 # Backend Flask para bot trader Binance REAL
 # Configura tus claves API aquí
 
+# backend.py
+# Backend Flask para bot trader Binance REAL
+# Configuración segura usando variables de entorno (.env)
+
+import os
 from flask import Flask, jsonify, request
 from flask_cors import CORS
 from binance.client import Client
@@ -11,31 +16,24 @@ import pandas as pd
 import smtplib
 from email.mime.text import MIMEText
 import requests
+# Cargar variables de entorno
+from dotenv import load_dotenv
+load_dotenv()
 
-API_KEY = "1UM5DD5TR9R0hyeN8t3JCPKrA5fadviPPIxx0RA1LuavUcaZHR2fXiWi22kzkbAm"
-API_SECRET = "TwI6LZnDWbGwgZ8VchrLNB3iU4kw4TlQgHfjF1AEALvtENzGkmI8koZ8IgrpWM09"
-
+API_KEY = os.getenv("BINANCE_API_KEY")
+API_SECRET = os.getenv("BINANCE_API_SECRET")
 client = Client(API_KEY, API_SECRET)
 
 app = Flask(__name__)
 CORS(app)
 
-bot_status = {'running': False, 'last_action': 'Ninguna', 'last_price': 0}
-operation_history = []
-
-symbol = 'BTCUSDT'
-interval = Client.KLINE_INTERVAL_1HOUR
-lookback = 60 * 24  # 60 días en horas
-
-# Estrategia avanzada: usa datos de los últimos 60 días
-
-def get_historical_data():
-    klines = client.get_historical_klines(symbol, interval, f"{lookback} hours ago UTC")
     df = pd.DataFrame(klines, columns=[
         'timestamp', 'open', 'high', 'low', 'close', 'volume', 'close_time',
+
         'quote_asset_volume', 'number_of_trades', 'taker_buy_base',
         'taker_buy_quote', 'ignore'])
     df['close'] = df['close'].astype(float)
+
     df['high'] = df['high'].astype(float)
     df['low'] = df['low'].astype(float)
     return df
@@ -58,12 +56,13 @@ def trading_strategy():
     else:
         return 'hold', last_price
 
-# Configura tu email para notificaciones
-NOTIFY_EMAIL = "fabroxf@gmail.com"
-SMTP_SERVER = "smtp.gmail.com"
-SMTP_PORT = 587
-SMTP_USER = "fabroxf@gmail.com"
-SMTP_PASS = "AQUÍ_TU_CONTRASEÑA_DE_GMAIL"
+
+# Configuración de email desde variables de entorno
+NOTIFY_EMAIL = os.getenv("EMAIL_USER")
+SMTP_SERVER = os.getenv("EMAIL_SERVER", "smtp.gmail.com")
+SMTP_PORT = int(os.getenv("EMAIL_PORT", 587))
+SMTP_USER = os.getenv("EMAIL_USER")
+SMTP_PASS = os.getenv("EMAIL_PASSWORD")
 
 def send_notification(subject, message):
     try:
