@@ -1,0 +1,21 @@
+# Entornos virtuales de Python
+.venv/
+__pycache__/
+
+# Archivos de entorno
+.env
+.env.*
+
+# Archivos de configuración de usuario
+*.pyc
+*.pyo
+*.pyd
+
+# Node y Expo
+app-bot-trader/node_modules/
+app-bot-trader/.expo/
+
+# Otros
+.DS_Store
+*.log
+perfecto.ipynb
